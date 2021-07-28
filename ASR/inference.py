@@ -1,6 +1,7 @@
 import librosa
 import numpy as np
 import torch
+from numpy import array2string
 
 from ASR.ksponspeech import KsponSpeechVocabulary
 from ASR.model.deepspeech import DeepSpeech2
@@ -70,6 +71,7 @@ def inference(opt):
         audio_paths = [opt['audio_path']]
 
     f = open('OUTPUTS/ASR-OUT/transcripts.txt', 'w')
+    f2 = open('OUTPUTS/ASR-OUT/parsed_audio.txt', 'w')
 
     for path in audio_paths:
         feature = parse_audio(path, opt).to(device)
@@ -78,12 +80,13 @@ def inference(opt):
         model.eval()
         y_hats = model.greedy_search(feature.unsqueeze(0), input_length)
 
-        # print(y_hats)
-
         sentence = vocab.label_to_string(y_hats.cpu().detach().numpy())
 
         print(sentence)
         f.write(' '.join(sentence[0].strip("<sos>").split()) + '\n')
+
+        print(y_hats)
+        f2.write(array2string(y_hats.cpu().detach().numpy()[0]))
 
     f.close()
 

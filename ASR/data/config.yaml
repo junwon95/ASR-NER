@@ -20,13 +20,7 @@ save_every: 1
 #inference
 inference: True
 use_val_data: True
-weight_path: ./ASR/weights/pretrained.pt
-
-#root : C:/SpeechRecognitionDataset/Dataset/AI_hub
-#script_data_path: C:/Users/junwonseo95/Desktop/project/data/aihub/transcripts.txt
-#vocab_path: C:/Users/junwonseo95/Desktop/project/data/aihub/aihub_labels.csv
-#model_save_path: C:/Users/junwonseo95/Desktop/project/data/weights/train.pt
-
+weight_path: ./ASR/weights/best_model.pt
 
 #validation
 validation_every: 5
