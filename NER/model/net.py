@@ -49,16 +49,16 @@ class KobertCRF(nn.Module):
             log_likelihood, sequence_of_tags = self.crf(emissions, tags), self.crf.decode(emissions)
             return log_likelihood, sequence_of_tags
         else:
-            sequence_of_tags = self.crf.decode(emissions)
-            return sequence_of_tags
+            sequence_of_tags, confidence = self.crf.decode2(emissions)
+            return sequence_of_tags, confidence
 
 class KobertCRFViz(nn.Module):
-    """ koBERT with CRF 시각화 가능하도록 BERT의 outputs도 반환해주게 수정  """        
+    """ koBERT with CRF 시각화 가능하도록 BERT의 outputs도 반환해주게 수정  """
     def __init__(self, config, num_classes, vocab=None) -> None:
         super(KobertCRFViz, self).__init__()
         # attention weight는 transformers 패키지에서만 지원됨
         from transformers import BertModel, BertConfig
-        
+
         # 모델 로딩 전에 True 값으로 설정해야함
         bert_config['output_attentions']=True
         self.bert = BertModel(config=BertConfig.from_dict(bert_config))
@@ -70,20 +70,20 @@ class KobertCRFViz(nn.Module):
 
     def forward(self, input_ids, token_type_ids=None, tags=None):
         attention_mask = input_ids.ne(self.vocab.token_to_idx[self.vocab.padding_token]).float()
-        
+
         # outputs: (last_encoder_layer, pooled_output, attention_weight)
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         last_encoder_layer = outputs[0]
         last_encoder_layer = self.dropout(last_encoder_layer)
-        emissions = self.position_wise_ff(last_encoder_layer)        
-        
+        emissions = self.position_wise_ff(last_encoder_layer)
+
         if tags is not None: # crf training
             log_likelihood, sequence_of_tags = self.crf(emissions, tags), self.crf.decode(emissions)
             return log_likelihood, sequence_of_tags
         else: # tag inference
             sequence_of_tags = self.crf.decode(emissions)
             return sequence_of_tags, outputs
-        
+
 class KobertBiLSTMCRF(nn.Module):
     """ koBERT with CRF """
     def __init__(self, config, num_classes, vocab=None) -> None:
@@ -91,7 +91,7 @@ class KobertBiLSTMCRF(nn.Module):
 
         if vocab is None: # pretraining model 사용
             self.bert, self.vocab = get_pytorch_kobert_model()
-        else: # finetuning model 사용           
+        else: # finetuning model 사용
             self.bert = BertModel(config=BertConfig.from_dict(bert_config))
             self.vocab = vocab
         self._pad_id = self.vocab.token_to_idx[self.vocab.padding_token]

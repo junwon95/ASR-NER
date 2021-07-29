@@ -80,7 +80,7 @@ def inference(parser):
         # list_of_pred_ids = y_pred.max(dim=-1)[1].tolist()
 
         ## for bert crf
-        list_of_pred_ids = model(x_input)
+        list_of_pred_ids, confidence = model(x_input)
 
         ## for bert bilstm crf & bert bigru crf
         # list_of_pred_ids = model(x_input, using_pack_sequence=False)
@@ -88,6 +88,7 @@ def inference(parser):
         list_of_ner_word, decoding_ner_sentence = decoder_from_res(list_of_input_ids=list_of_input_ids, list_of_pred_ids=list_of_pred_ids)
         print("list_of_ner_word:", list_of_ner_word)
         print("decoding_ner_sentence:", decoding_ner_sentence)
+        print("confidence:", confidence.item())
 
 
 class DecoderFromNamedEntitySequence():
