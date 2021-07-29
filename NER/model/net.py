@@ -19,6 +19,7 @@ bert_config = {'attention_probs_dropout_prob': 0.1,
                  'type_vocab_size': 2,
                  'vocab_size': 8002}
 
+
 class KobertCRF(nn.Module):
     """ KoBERT with CRF """
     def __init__(self, config, num_classes, vocab=None) -> None:
