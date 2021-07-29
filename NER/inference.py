@@ -5,17 +5,18 @@ import pickle
 import torch
 
 import sys
+
 sys.path.append('NER')
 
-from NER.model.net import KobertSequenceFeatureExtractor, KobertCRF, KobertBiLSTMCRF, KobertBiGRUCRF
+from NER.model.net import KobertCRF
 from gluonnlp.data import SentencepieceTokenizer
 from NER.data_utils.utils import Config
 from NER.data_utils.vocab_tokenizer import Tokenizer
 from NER.data_utils.pad_sequence import keras_pad_fn
 from pathlib import Path
 
-def inference(parser):
 
+def inference(parser):
     args = parser.parse_args()
     model_dir = Path(args.model_dir)
     model_config = Config(json_path=model_dir / 'config.json')
@@ -47,7 +48,8 @@ def inference(parser):
     # checkpoint = torch.load("./experiments/base_model/best-epoch-9-step-600-acc-0.845.bin", map_location=torch.device('cpu'))
 
     # checkpoint = torch.load("./experiments/base_model_with_crf/best-epoch-16-step-1500-acc-0.993.bin", map_location=torch.device('cpu'))
-    checkpoint = torch.load("NER/experiments/base_model_with_crf_val/best-epoch-12-step-1000-acc-0.960.bin", map_location=torch.device('cpu'))
+    checkpoint = torch.load("NER/experiments/base_model_with_crf_val/best-epoch-12-step-1000-acc-0.960.bin",
+                            map_location=torch.device('cpu'))
     # checkpoint = torch.load("./experiments/base_model_with_bilstm_crf/best-epoch-15-step-2750-acc-0.992.bin", map_location=torch.device('cpu'))
     # checkpoint = torch.load("./experiments/base_model_with_bigru_crf/model-epoch-18-step-3250-acc-0.997.bin", map_location=torch.device('cpu'))
 
@@ -59,7 +61,7 @@ def inference(parser):
             continue
         convert_keys[new_key_name] = v
 
-    model.load_state_dict(convert_keys,strict=False)
+    model.load_state_dict(convert_keys, strict=False)
     model.eval()
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -70,7 +72,7 @@ def inference(parser):
 
     decoder_from_res = DecoderFromNamedEntitySequence(tokenizer=tokenizer, index_to_ner=index_to_ner)
 
-    while(True):
+    while (True):
         input_text = input("문장을 입력하세요: ")
         list_of_input_ids = tokenizer.list_of_string_to_list_of_cls_sep_token_ids([input_text])
         x_input = torch.tensor(list_of_input_ids).long()
@@ -85,7 +87,8 @@ def inference(parser):
         ## for bert bilstm crf & bert bigru crf
         # list_of_pred_ids = model(x_input, using_pack_sequence=False)
 
-        list_of_ner_word, decoding_ner_sentence = decoder_from_res(list_of_input_ids=list_of_input_ids, list_of_pred_ids=list_of_pred_ids)
+        list_of_ner_word, decoding_ner_sentence = decoder_from_res(list_of_input_ids=list_of_input_ids,
+                                                                   list_of_pred_ids=list_of_pred_ids)
         print("list_of_ner_word:", list_of_ner_word)
         print("decoding_ner_sentence:", decoding_ner_sentence)
         print("confidence:", confidence.item())
@@ -111,17 +114,17 @@ class DecoderFromNamedEntitySequence():
                 entity_tag = pred_ner_tag_str[-3:]
 
                 if prev_entity_tag != entity_tag and prev_entity_tag != "":
-                    list_of_ner_word.append({"word": entity_word.replace("▁", " "), "tag": prev_entity_tag, "prob": None})
+                    list_of_ner_word.append(
+                        {"word": entity_word.replace("▁", " "), "tag": prev_entity_tag, "prob": None})
 
                 entity_word = input_token[i]
                 prev_entity_tag = entity_tag
-            elif "I-"+entity_tag in pred_ner_tag_str:
+            elif "I-" + entity_tag in pred_ner_tag_str:
                 entity_word += input_token[i]
             else:
                 if entity_word != "" and entity_tag != "":
-                    list_of_ner_word.append({"word":entity_word.replace("▁", " "), "tag":entity_tag, "prob":None})
+                    list_of_ner_word.append({"word": entity_word.replace("▁", " "), "tag": entity_tag, "prob": None})
                 entity_word, entity_tag, prev_entity_tag = "", "", ""
-
 
         # ----------------------------- parsing decoding_ner_sentence ----------------------------- #
         decoding_ner_sentence = ""
@@ -134,7 +137,7 @@ class DecoderFromNamedEntitySequence():
 
             if 'B-' in pred_ner_tag_str:
                 if is_prev_entity is True:
-                    decoding_ner_sentence += ':' + prev_entity_tag+ '>'
+                    decoding_ner_sentence += ':' + prev_entity_tag + '>'
 
                 if token_str[0] == ' ':
                     token_str = list(token_str)
@@ -144,17 +147,17 @@ class DecoderFromNamedEntitySequence():
                 else:
                     decoding_ner_sentence += '<' + token_str
                 is_prev_entity = True
-                prev_entity_tag = pred_ner_tag_str[-3:] # 첫번째 예측을 기준으로 하겠음
+                prev_entity_tag = pred_ner_tag_str[-3:]  # 첫번째 예측을 기준으로 하겠음
                 is_there_B_before_I = True
 
             elif 'I-' in pred_ner_tag_str:
                 decoding_ner_sentence += token_str
 
-                if is_there_B_before_I is True: # I가 나오기전에 B가 있어야하도록 체크
+                if is_there_B_before_I is True:  # I가 나오기전에 B가 있어야하도록 체크
                     is_prev_entity = True
             else:
                 if is_prev_entity is True:
-                    decoding_ner_sentence += ':' + prev_entity_tag+ '>' + token_str
+                    decoding_ner_sentence += ':' + prev_entity_tag + '>' + token_str
                     is_prev_entity = False
                     is_there_B_before_I = False
                 else:

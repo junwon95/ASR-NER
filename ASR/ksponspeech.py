@@ -40,11 +40,14 @@ class KsponSpeechVocabulary():
         sentences = list()
         for batch in labels:
             sentence = str()
+            prev_id = -1
             for label in batch:
                 if label.item() == self.eos_id:
                     break
-                elif label.item() == self.blank_id:
-                  continue
+                elif label.item() == self.blank_id or label.item() == prev_id:
+                    prev_id = label.item()
+                    continue
+                prev_id = label.item()
                 sentence += self.id_dict[label.item()]
             sentences.append(sentence)
         return sentences
