@@ -5,7 +5,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 #from kobert.pytorch_kobert import get_pytorch_kobert_model
 from transformers import BertModel, BertConfig
 # from pytorch_pretrained_bert import BertModel, BertConfig
-from torchcrf import CRF
+from NER.model.modCRF import CRF
 
 bert_config = {'attention_probs_dropout_prob': 0.1,
                  'hidden_act': 'gelu',
@@ -49,7 +49,7 @@ class KobertCRF(nn.Module):
             log_likelihood, sequence_of_tags = self.crf(emissions, tags), self.crf.decode(emissions)
             return log_likelihood, sequence_of_tags
         else:
-            sequence_of_tags, confidence = self.crf.decode2(emissions)
+            sequence_of_tags, confidence = self.crf.decode(emissions)
             return sequence_of_tags, confidence
 
 class KobertCRFViz(nn.Module):
