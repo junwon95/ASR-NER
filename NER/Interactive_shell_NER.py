@@ -187,7 +187,7 @@ def NER():
 
         list_of_input_ids = tokenizer.list_of_string_to_list_of_cls_sep_token_ids([input_text])
         x_input = torch.tensor(list_of_input_ids).long()
-        list_of_pred_ids = model(x_input)
+        list_of_pred_ids, confidence = model(x_input)
         list_of_ner_word, decoding_ner_sentence = decoder_from_res(list_of_input_ids=list_of_input_ids,
                                                                    list_of_pred_ids=list_of_pred_ids,
                                                                    input_text=input_text.replace(" ", ""))

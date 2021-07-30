@@ -1,3 +1,2 @@
-KsponSpeech_01\KsponSpeech_0001\KsponSpeech_000001.pcm
-KsponSpeech_01\KsponSpeech_0001\KsponSpeech_000002.pcm
 KsponSpeech_01\KsponSpeech_0001\KsponSpeech_000003.pcm
+KsponSpeech_01\KsponSpeech_0001\KsponSpeech_000016.pcm

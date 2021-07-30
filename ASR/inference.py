@@ -85,7 +85,7 @@ def inference(opt):
         print(sentence)
         f.write(' '.join(sentence[0].strip("<sos>").split()) + '\n')
 
-        print(y_hats)
+        # print(y_hats)
         f2.write(array2string(y_hats.cpu().detach().numpy()[0]))
 
     f.close()

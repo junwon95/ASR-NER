@@ -20,7 +20,7 @@ save_every: 1
 #inference
 inference: True
 use_val_data: True
-weight_path: ./ASR/weights/best_model2.pt
+weight_path: ./ASR/weights/best_model.pt
 
 #validation
 validation_every: 5
