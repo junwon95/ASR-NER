@@ -40,39 +40,32 @@ def get_ne_cer(tar, pred):
     return distance, length
 
 
-def get_f1_precision(tar, pred, tags):
-
-    target_pos = [i for i, v in enumerate(tar) if v in tags]
-    prediction_pos = [i for i, v in enumerate(pred) if v in tags]
+def get_f1_precision(tar, pred):
+    if len(pred) == 0:
+        return 0, 0
+    if len(tar) == 0:
+        return 0, len(pred)
 
     count = 0
+    for p in pred:
+        if min(map(lambda x: Levenshtein.distance(p, x), tar)) <= 1:
+            count += 1
 
-    for i in prediction_pos:
-        if min([abs(i-x) for x in target_pos]) <=2:
-            print()
-            #TODO
-
-
-
-def printCER():
-    print('\ntotal CER: {:.3f}'.format(total_distance / total_length))
-    print('named-entity CER: {:.3f}'.format(ne_distance / ne_length))
-
-    print('\nPER tags: {:d}'.format(per_cnt))
-    if per_cnt > 0:
-        print('PER tag CER: {:.3f}'.format(per_distance / per_length))
-
-    print('\nLOC tags: {:d}'.format(loc_cnt))
-    if loc_cnt > 0:
-        print('LOC tag CER: {:.3f}'.format(loc_distance / loc_length))
-
-    print('\nORG tags: {:d}'.format(org_cnt))
-    if org_cnt > 0:
-        print('ORG tag CER: {:.3f}'.format(org_distance / org_length))
+    return count, len(pred)
 
 
-def printF1():
-    print()
+def get_f1_recall(tar, pred):
+    if len(pred) == 0:
+        return 0, len(tar)
+    if len(tar) == 0:
+        return 0, 0
+
+    count = 0
+    for t in tar:
+        if min(map(lambda x: Levenshtein.distance(t, x), pred)) <= 1:
+            count += 1
+
+    return count, len(tar)
 
 
 # ---------- read data -----------
@@ -105,8 +98,25 @@ loc_cnt = 0
 org_cnt = 0
 
 # F1
-precision = 0
-recall = 0
+precision_cnt = 0
+precision_len = 0
+recall_cnt = 0
+recall_len = 0
+
+per_precision_cnt = 0
+per_precision_len = 0
+per_recall_cnt = 0
+per_recall_len = 0
+
+loc_precision_cnt = 0
+loc_precision_len = 0
+loc_recall_cnt = 0
+loc_recall_len = 0
+
+org_precision_cnt = 0
+org_precision_len = 0
+org_recall_cnt = 0
+org_recall_len = 0
 
 for target, prediction in zip(targets, predictions):
     # -------------- check CER ---------------
@@ -142,18 +152,75 @@ for target, prediction in zip(targets, predictions):
     loc_cnt += len(P_LOC)
     org_cnt += len(P_ORG)
 
-# --------------- check F1 ---------------
+    # --------------- check F1 ---------------
+    p_cnt, p_len = get_f1_precision(PER + LOC + ORG, P_PER + P_LOC + P_ORG)
+    r_cnt, r_len = get_f1_recall(PER + LOC + ORG, P_PER + P_LOC + P_ORG)
+    precision_cnt += p_cnt
+    precision_len += p_len
+    recall_cnt += r_cnt
+    recall_len += r_len
+    print('***')
+    print(recall_cnt)
+    print(recall_len)
 
+    per_p_cnt, per_p_len = get_f1_precision(PER, P_PER)
+    per_r_cnt, per_r_len = get_f1_recall(PER, P_PER)
+    per_precision_cnt += per_p_cnt
+    per_precision_len += per_p_len
+    per_recall_cnt += per_r_cnt
+    per_recall_len += per_r_len
 
+    loc_p_cnt, loc_p_len = get_f1_precision(LOC, P_LOC)
+    loc_r_cnt, loc_r_len = get_f1_recall(LOC, P_LOC)
+    loc_precision_cnt += loc_p_cnt
+    loc_precision_len += loc_p_len
+    loc_recall_cnt += loc_r_cnt
+    loc_recall_len += loc_r_len
 
+    org_p_cnt, org_p_len = get_f1_precision(ORG, P_ORG)
+    org_r_cnt, org_r_len = get_f1_recall(ORG, P_ORG)
+    org_precision_cnt += org_p_cnt
+    org_precision_len += org_p_len
+    org_recall_cnt += org_r_cnt
+    org_recall_len += org_r_len
 
 print('------------------TEST RESULTS-------------------')
 print('validation set size: {:d}'.format(len(targets)))
 
-print('\n---Character Error Rates---')
+print('\ntotal CER: {:.3f}'.format(total_distance / total_length))
 
-printCER()
+print('\n-- tags: {:d}'.format(per_cnt + loc_cnt + org_cnt))
+print('named-entity CER: {:.3f}'.format(ne_distance / ne_length))
 
-print('\n---F1 Score Measures---')
+precision = precision_cnt / precision_len
+recall = recall_cnt / recall_len
+print('\nF1 score: {:.3f}'.format(2 * precision * recall / (precision + recall)))
+print('precision: {:.3f}'.format(precision))
+print('recall: {:.3f}'.format(recall))
 
-printF1()
+print('\n-- PER tags: {:d}'.format(per_cnt))
+per_precision = per_precision_cnt / per_precision_len
+per_recall = per_recall_cnt / per_recall_len
+if per_cnt > 0:
+    print('PER tag CER: {:.3f}'.format(per_distance / per_length))
+    print('\nPER F1 score: {:.3f}'.format(2 * per_precision * per_recall / (per_precision + per_recall)))
+    print('PER precision: {:.3f}'.format(per_precision))
+    print('PER recall: {:.3f}'.format(per_recall))
+
+print('\n-- LOC tags: {:d}'.format(loc_cnt))
+loc_precision = loc_precision_cnt / loc_precision_len
+loc_recall = loc_recall_cnt / loc_recall_len
+if loc_cnt > 0:
+    print('LOC tag CER: {:.3f}'.format(loc_distance / loc_length))
+    print('\nLOC F1 score: {:.3f}'.format(2 * loc_precision * loc_recall / (loc_precision + loc_recall)))
+    print('LOC precision: {:.3f}'.format(loc_precision))
+    print('LOC recall: {:.3f}'.format(loc_recall))
+
+print('\n-- ORG tags: {:d}'.format(org_cnt))
+org_precision = org_precision_cnt / org_precision_len
+org_recall = org_recall_cnt / org_recall_len
+if org_cnt > 0:
+    print('ORG tag CER: {:.3f}'.format(org_distance / org_length))
+    print('\nORG F1 score: {:.3f}'.format(2 * org_precision * org_recall / (org_precision + org_recall)))
+    print('ORG precision: {:.3f}'.format(org_precision))
+    print('ORG recall: {:.3f}'.format(org_recall))
