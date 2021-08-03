@@ -36,7 +36,7 @@ def get_relative_pos(label, position, parsed_audio):
                 count += 1
             prev = v
 
-    return (mask_pos[0]-2) / len(parsed_audio), (mask_pos[1]+2) / len(parsed_audio)
+    return (mask_pos[0]-3) / len(parsed_audio), (mask_pos[1]+3) / len(parsed_audio)
 
 
 def get_masking_pos():
@@ -69,7 +69,7 @@ def get_masking_pos():
 
 
 def mask_audio(masking_pos):
-    with open('TEST/audio_paths.txt') as f:
+    with open('TEST/audio_paths.txt',encoding='utf8') as f:
         audio_paths = [opt['root'] + '/' + line.strip('\n').replace("\\", "/") for line in f.readlines()]
 
     file_no = 0
@@ -79,7 +79,6 @@ def mask_audio(masking_pos):
         for mp in mask_pos:
             # noise
             duration = int((mp[1] - mp[0]) * signal.shape[0])
-
             freq_hz = 540.0
             sps = 16000
             esm = np.arange(duration)
@@ -100,9 +99,9 @@ def mask_audio(masking_pos):
 
             masked_signal = signal + mask
             signal = masked_signal
+
         file_no += 1
-        print(audio_path)
-        soundfile.write( 'OUTPUTS/audio{:d}.wav'.format(file_no), masked_signal, sps)
+        soundfile.write( 'OUTPUTS/audio{:d}.wav'.format(file_no), signal, 16000)
 
 
 if __name__ == "__main__":

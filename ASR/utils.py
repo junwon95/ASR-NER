@@ -204,7 +204,7 @@ def save_model(checkpoint, is_best, save_pretrined=True):
         torch.save(checkpoint['state_dict'], dirname + pre_path)
 
     if is_best:
-        best_fpath = 'best_model.pt'
+        best_fpath = 'best_model2.pt'
         shutil.copyfile(dirname + f_path, dirname + best_fpath)
 
     print('model save on epoch:{}'.format(checkpoint['epoch']))
@@ -220,7 +220,7 @@ def load_model(opt, model, vocab):
                                                   mode='triangular', cycle_momentum=False)
     if opt['resume']:
         root = './weights/'
-        resume_path = get_last_checkpoint_dir(root) + 'best_model.pt'
+        resume_path = get_last_checkpoint_dir(root) + 'best_model2.pt'
         checkpoint = torch.load(resume_path)
         model.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])

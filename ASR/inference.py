@@ -1,3 +1,5 @@
+import sys
+
 import librosa
 import numpy as np
 import torch
@@ -73,7 +75,7 @@ def inference(opt):
     f = open('OUTPUTS/ASR-OUT/transcripts.txt', 'w')
     f2 = open('OUTPUTS/ASR-OUT/parsed_audio.txt', 'w')
 
-    for path in audio_paths:
+    for i, path in enumerate(audio_paths):
         feature = parse_audio(path, opt).to(device)
         input_length = torch.LongTensor([len(feature)])
 
@@ -82,11 +84,12 @@ def inference(opt):
 
         sentence = vocab.label_to_string(y_hats.cpu().detach().numpy())
 
+        print('sentence no.{:d}'.format(i))
         print(sentence)
         f.write(' '.join(sentence[0].strip("<sos>").split()) + '\n')
 
         # print(y_hats)
-        f2.write(array2string(y_hats.cpu().detach().numpy()[0]) + '\n')
+        f2.write(array2string(y_hats.cpu().detach().numpy()[0], threshold=sys.maxsize) + '\n')
 
     f.close()
 
