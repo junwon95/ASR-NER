@@ -1,4 +1,6 @@
+import soundfile
 import yaml
+import numpy as np
 from ASR.ksponspeech import KsponSpeechVocabulary
 
 
@@ -34,7 +36,7 @@ def get_relative_pos(label, position, parsed_audio):
                 count += 1
             prev = v
 
-    return mask_pos[0] / len(parsed_audio), mask_pos[1] / len(parsed_audio)
+    return (mask_pos[0]-2) / len(parsed_audio), (mask_pos[1]+2) / len(parsed_audio)
 
 
 def get_masking_pos():
@@ -67,7 +69,40 @@ def get_masking_pos():
 
 
 def mask_audio(masking_pos):
+    with open('TEST/audio_paths.txt') as f:
+        audio_paths = [opt['root'] + '/' + line.strip('\n').replace("\\", "/") for line in f.readlines()]
 
+    file_no = 0
+    for audio_path, mask_pos in zip(audio_paths, masking_pos):
+        signal = np.memmap(audio_path, dtype='h', mode='r').astype('float32') / 32767
+
+        for mp in mask_pos:
+            # noise
+            duration = int((mp[1] - mp[0]) * signal.shape[0])
+
+            freq_hz = 540.0
+            sps = 16000
+            esm = np.arange(duration)
+            noise = 1 * np.sin(2 * np.pi * esm * freq_hz / sps)
+
+            # configure
+            mask_start = int(mp[0] * signal.shape[0])
+            front_padding = np.zeros(mask_start)
+
+            mask_end = mask_start + duration
+            back_padding = np.zeros(signal.shape[0] - mask_end)
+
+            mask = np.append(front_padding, noise)
+            mask = np.append(mask, back_padding)
+
+            # silence original
+            signal[mask_start:mask_start + duration] = 0
+
+            masked_signal = signal + mask
+            signal = masked_signal
+        file_no += 1
+        print(audio_path)
+        soundfile.write( 'OUTPUTS/audio{:d}.wav'.format(file_no), masked_signal, sps)
 
 
 if __name__ == "__main__":
@@ -75,4 +110,5 @@ if __name__ == "__main__":
         opt = yaml.load(f, Loader=yaml.FullLoader)
     vocab = KsponSpeechVocabulary(opt['vocab_path'])
 
-    get_masking_pos()
+    mask_audio(get_masking_pos())
+
