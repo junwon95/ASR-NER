@@ -63,7 +63,11 @@ def get_masking_pos():
             mask_pos.append(get_relative_pos(label, position, parsed_audio))
         masking_pos.append(mask_pos)
 
-    print(masking_pos)
+    return masking_pos
+
+
+def mask_audio(masking_pos):
+
 
 
 if __name__ == "__main__":

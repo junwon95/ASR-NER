@@ -3,29 +3,34 @@ import numpy as np
 
 audio_path = r'INPUT/test.pcm'
 
-signal = np.memmap(audio_path, dtype='h', mode='r').astype('float32')/ 32767
+mask_point = [(0.1, 0.2), (0.4, 0.7)]
 
-# noise
-duration = 30000
+signal = np.memmap(audio_path, dtype='h', mode='r').astype('float32') / 32767
 
-freq_hz = 540.0
-sps = 16000
-esm = np.arange(duration)
-noise = 1 * np.sin(2 * np.pi * esm * freq_hz / sps)
+for mp in mask_point:
 
-# configure
-mask_start = 20368
-front_padding = np.zeros(mask_start)
+    # noise
+    duration = int((mp[1]-mp[0])*signal.shape[0])
 
-mask_end = 50368
-back_padding = np.zeros(signal.shape[0] - mask_end)
+    freq_hz = 540.0
+    sps = 16000
+    esm = np.arange(duration)
+    noise = 1 * np.sin(2 * np.pi * esm * freq_hz / sps)
 
-mask = np.append(front_padding, noise)
-mask = np.append(mask, back_padding)
+    # configure
+    mask_start = int(mp[0]*signal.shape[0])
+    front_padding = np.zeros(mask_start)
 
-# silence original
-signal[mask_start:mask_start+duration] = 0
+    mask_end = mask_start + duration
+    back_padding = np.zeros(signal.shape[0] - mask_end)
 
+    mask = np.append(front_padding, noise)
+    mask = np.append(mask, back_padding)
 
-masked_signal = signal + mask
+    # silence original
+    signal[mask_start:mask_start+duration] = 0
+
+    masked_signal = signal + mask
+    signal = masked_signal
+
 soundfile.write('OUTPUTS/filename.wav', masked_signal, sps)
