@@ -16,7 +16,7 @@ def load_audio(audio_path, extension='pcm'):
     If exception occurs in numpy.memmap(), return None.
     """
     if extension == 'pcm':
-        signal = np.memmap(audio_path, dtype='h', mode='r').astype('float32')
+        signal = np.memmap(audio_path, dtype='int16', mode='r').astype('float32')
         return signal / 32767  # normalize audio
 
     elif extension == 'wav' or extension == 'flac':
