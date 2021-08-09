@@ -11,6 +11,7 @@ lines = f.readlines()
 lines2 = f2.readlines()
 
 
+
 randomLines = random.sample(list(zip(lines, lines2)), 1300)
 
 for randomLine in randomLines:

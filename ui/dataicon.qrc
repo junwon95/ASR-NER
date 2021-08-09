@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="dataicon">
+    <file>mainIcon.png</file>
+    <file>dataicon.png</file>
+  </qresource>
+</RCC>

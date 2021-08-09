@@ -69,8 +69,8 @@ def get_f1_recall(tar, pred):
 
 
 # ---------- read data -----------
-f = open("TEST/true_transcripts.txt", 'rt', encoding="UTF8")
-f2 = open("OUTPUTS/NER-OUT/final_output.txt", 'rt', encoding="UTF8")
+f = open("TEST/true_transcripts.txt", 'rt', encoding="cp949")
+f2 = open("OUTPUTS/NER-OUT/final_output.txt", 'rt', encoding="utf8")
 
 targets = f.readlines()
 predictions = f2.readlines()
